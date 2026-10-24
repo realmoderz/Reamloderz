@@ -161,7 +161,6 @@
       appId: "1:879115715712:web:93b9584c6ecc7bbf951265"
     };
 
-    // Fallback/Demo dataset if ID is missing or invalid
     const FALLBACK_DATA = {
       brandName: "Realmoderz Links",
       destinationLink: "https://google.com",
@@ -183,19 +182,17 @@
     let tasksList = [];
     let linkId = "";
     const completedTasks = new Set();
-    const openedTasks = new Set(); // Tracks tasks opened by user
+    const openedTasks = new Set();
 
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
       linkId = (urlParams.get("id") || "").trim();
 
       if (!linkId) {
-        // Smoothly load Demo / Fallback without throwing Access Error
         loadData(FALLBACK_DATA, "demo");
         return;
       }
 
-      // Safe Firebase fetch with fallback support
       try {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -205,13 +202,9 @@
         if (snapshot.exists()) {
           loadData(snapshot.val(), linkId);
         } else {
-          // If ID not in database, fallback smoothly
-          console.warn("Link ID not found in database. Using fallback mode.");
           loadData(FALLBACK_DATA, linkId);
         }
       } catch (err) {
-        console.error("Firebase fetch error:", err);
-        // Network fail / offline fallback
         loadData(FALLBACK_DATA, linkId || "fallback");
       }
     }
@@ -220,7 +213,6 @@
       destinationUrl = data.destinationLink || "https://google.com";
       tasksList = Array.isArray(data.tasks) ? data.tasks : [];
 
-      // Restore saved progress safely
       try {
         const saved = localStorage.getItem(`sub2unlock_${storageKey}`);
         if (saved) {
@@ -228,21 +220,18 @@
           parsed.forEach(idx => {
             if (idx >= 0 && idx < tasksList.length) {
               completedTasks.add(idx);
+              openedTasks.add(idx); // Auto-mark opened if already completed before
             }
           });
         }
-      } catch (e) {
-        console.warn("Storage parse error:", e);
-      }
+      } catch (e) {}
 
       document.getElementById("brand-title").textContent = data.brandName || "Realmoderz";
 
-      // Render tasks and update progress
       renderTasksContainer();
       updateProgressDisplay();
       evaluateUnlockStatus();
 
-      // Show content state cleanly
       document.getElementById("loading-state").classList.add("hidden");
       document.getElementById("error-state").classList.add("hidden");
       document.getElementById("content-state").classList.remove("hidden");
@@ -275,9 +264,7 @@
               <span class="text-[9px] uppercase tracking-wider font-extrabold text-slate-400">Step ${index + 1}</span>
             </div>
           </div>
-          <div id="task-action-${index}" class="shrink-0 flex items-center">
-            <!-- Dynamic Action Button/Status -->
-          </div>
+          <div id="task-action-${index}" class="shrink-0 flex items-center"></div>
         `;
 
         container.appendChild(card);
@@ -285,7 +272,6 @@
       });
     }
 
-    // Handles dynamic state change of individual task slot without full DOM re-renders
     function updateTaskActionSlot(index) {
       const slot = document.getElementById(`task-action-${index}`);
       if (!slot) return;
@@ -300,18 +286,16 @@
       }
 
       if (openedTasks.has(index)) {
-        // Step 2: User opened link, now show clean Manual "Verify" button
         slot.innerHTML = `
-          <button id="btn-verify-${index}" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm">
+          <button id="btn-verify-${index}" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-cyan-400 hover:bg-cyan-300 text-slate-950 flex items-center gap-1.5 transition-transform active:scale-95 shadow-sm cursor-pointer">
             <span>Verify</span>
             <i class="fa-solid fa-check text-[10px]"></i>
           </button>
         `;
         document.getElementById(`btn-verify-${index}`).onclick = () => handleVerifyClick(index);
       } else {
-        // Step 1: Initial state -> "Go" button
         slot.innerHTML = `
-          <button id="btn-open-${index}" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/15 text-slate-200 flex items-center gap-1.5 transition-transform active:scale-95">
+          <button id="btn-open-${index}" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/15 text-slate-200 flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer">
             <span>Go</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
           </button>
@@ -324,12 +308,10 @@
       const task = tasksList[index];
       openedTasks.add(index);
 
-      // Open task link safely in a new window/tab
       if (task && task.url) {
         window.open(task.url, "_blank", "noopener,noreferrer");
       }
 
-      // Switch button immediately to "Verify" without reloading whole list
       updateTaskActionSlot(index);
     }
 
@@ -337,7 +319,6 @@
       const slot = document.getElementById(`task-action-${index}`);
       if (!slot) return;
 
-      // Small 500ms spinner to give instant visual feedback of checking
       slot.innerHTML = `
         <div class="w-8 h-8 rounded-xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center text-xs">
           <i class="fa-solid fa-spinner fa-spin"></i>
@@ -347,13 +328,11 @@
       setTimeout(() => {
         completedTasks.add(index);
 
-        // Update localStorage
         const storageKey = linkId || "demo";
         try {
           localStorage.setItem(`sub2unlock_${storageKey}`, JSON.stringify(Array.from(completedTasks)));
         } catch (e) {}
 
-        // Targeted DOM updates for ultra-smooth performance
         const card = document.getElementById(`task-card-${index}`);
         if (card) card.classList.add("task-card-completed");
 
@@ -366,7 +345,7 @@
         updateTaskActionSlot(index);
         updateProgressDisplay();
         evaluateUnlockStatus();
-      }, 500);
+      }, 400);
     }
 
     function updateProgressDisplay() {
@@ -385,7 +364,6 @@
       const lockIcon = document.getElementById("lock-icon");
 
       if (isFinished) {
-        // Unlock button unlocked & animated
         unlockBtn.disabled = false;
         unlockBtn.className = "w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-95 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2";
         unlockBtn.innerHTML = `<span>Get Target Link</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
@@ -401,7 +379,6 @@
       }
     }
 
-    // Start initialization
     init();
   </script>
 </body>
