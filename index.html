@@ -50,7 +50,6 @@
       border-color: rgba(52, 211, 153, 0.35) !important;
     }
 
-    /* Strict Ad Wrapper to prevent full-screen glitch / overflow */
     .ad-slot-box {
       width: 320px;
       height: 50px;
@@ -67,7 +66,7 @@
 
 <body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col justify-between items-center p-3 sm:p-4 selection:bg-cyan-500 selection:text-black">
 
-  <!-- TOP AD BANNER (Strictly Locked Size) -->
+  <!-- TOP AD BANNER -->
   <div class="w-full flex justify-center my-2">
     <div class="ad-slot-box">
       <script>
@@ -146,7 +145,7 @@
     </div>
   </main>
 
-  <!-- BOTTOM AD BANNER (Strictly Locked Size) -->
+  <!-- BOTTOM AD BANNER -->
   <div class="w-full flex justify-center my-2">
     <div class="ad-slot-box">
       <script>
@@ -204,6 +203,9 @@
     const completedTasks = new Set();
     const openedTasks = new Set();
 
+    // STRICT EXPIRY TIMER: 10 Minutes (in milliseconds)
+    const EXPIRY_TIME = 10 * 60 * 1000; 
+
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
       linkId = (urlParams.get("id") || "").trim();
@@ -235,16 +237,29 @@
       tasksList = Array.isArray(data.tasks) ? data.tasks : [];
 
       try {
-        const savedCompleted = localStorage.getItem(`rm_completed_${storageKey}`);
-        if (savedCompleted) {
-          JSON.parse(savedCompleted).forEach(idx => completedTasks.add(idx));
-        }
+        const savedTime = localStorage.getItem(`rm_time_${storageKey}`);
+        const currentTime = Date.now();
 
-        const savedOpened = localStorage.getItem(`rm_opened_${storageKey}`);
-        if (savedOpened) {
-          JSON.parse(savedOpened).forEach(idx => openedTasks.add(idx));
+        // 10 मिनट से ज़्यादा होने पर पूरा प्रोग्रेस रीसेट कर दें
+        if (!savedTime || (currentTime - parseInt(savedTime, 10)) > EXPIRY_TIME) {
+          localStorage.removeItem(`rm_completed_${storageKey}`);
+          localStorage.removeItem(`rm_opened_${storageKey}`);
+          localStorage.setItem(`rm_time_${storageKey}`, currentTime.toString());
+        } else {
+          // 10 मिनट के अंदर हैं, तो सेव किया हुआ स्टेट ही दिखाएं
+          const savedCompleted = localStorage.getItem(`rm_completed_${storageKey}`);
+          if (savedCompleted) {
+            JSON.parse(savedCompleted).forEach(idx => completedTasks.add(idx));
+          }
+
+          const savedOpened = localStorage.getItem(`rm_opened_${storageKey}`);
+          if (savedOpened) {
+            JSON.parse(savedOpened).forEach(idx => openedTasks.add(idx));
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Storage check exception", e);
+      }
 
       document.getElementById("brand-title").textContent = data.brandName || "Realmoderz";
 
@@ -261,6 +276,7 @@
       try {
         localStorage.setItem(`rm_completed_${storageKey}`, JSON.stringify(Array.from(completedTasks)));
         localStorage.setItem(`rm_opened_${storageKey}`, JSON.stringify(Array.from(openedTasks)));
+        localStorage.setItem(`rm_time_${storageKey}`, Date.now().toString());
       } catch (e) {}
     }
 
@@ -391,7 +407,6 @@
     function updateProgressDisplay() {
       const total = tasksList.length;
       const count = completedTasks.size;
-      document.phonesockCount = count; // dummy reference
       document.getElementById("task-counter").textContent = `${count} / ${total}`;
 
       const percentage = total > 0 ? (count / total) * 100 : 0;
