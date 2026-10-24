@@ -49,23 +49,38 @@
       background: rgba(16, 185, 129, 0.08) !important;
       border-color: rgba(52, 211, 153, 0.35) !important;
     }
+
+    /* Strict Ad Wrapper to prevent full-screen glitch / overflow */
+    .ad-slot-box {
+      width: 320px;
+      height: 50px;
+      max-width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+    }
   </style>
 </head>
 
 <body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col justify-between items-center p-3 sm:p-4 selection:bg-cyan-500 selection:text-black">
 
-  <!-- TOP AD BANNER -->
+  <!-- TOP AD BANNER (Strictly Locked Size) -->
   <div class="w-full flex justify-center my-2">
-    <script>
-      atOptions = {
-        'key' : '7ec14d4dbf15922518bb543fa461d221',
-        'format' : 'iframe',
-        'height' : 50,
-        'width' : 320,
-        'params' : {}
-      };
-    </script>
-    <script src="https://bicea.org/22/7ec14d4dbf15922518bb543fa461d221"></script>
+    <div class="ad-slot-box">
+      <script>
+        atOptions = {
+          'key' : '7ec14d4dbf15922518bb543fa461d221',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      </script>
+      <script src="https://bicea.org/22/7ec14d4dbf15922518bb543fa461d221"></script>
+    </div>
   </div>
 
   <!-- MAIN CARD CONTAINER -->
@@ -131,18 +146,20 @@
     </div>
   </main>
 
-  <!-- BOTTOM AD BANNER -->
+  <!-- BOTTOM AD BANNER (Strictly Locked Size) -->
   <div class="w-full flex justify-center my-2">
-    <script>
-      atOptions = {
-        'key' : '7ec14d4dbf15922518bb543fa461d221',
-        'format' : 'iframe',
-        'height' : 50,
-        'width' : 320,
-        'params' : {}
-      };
-    </script>
-    <script src="https://bicea.org/22/7ec14d4dbf15922518bb543fa461d221"></script>
+    <div class="ad-slot-box">
+      <script>
+        atOptions = {
+          'key' : '7ec14d4dbf15922518bb543fa461d221',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      </script>
+      <script src="https://bicea.org/22/7ec14d4dbf15922518bb543fa461d221"></script>
+    </div>
   </div>
 
   <!-- APPLICATION LOGIC -->
@@ -374,6 +391,7 @@
     function updateProgressDisplay() {
       const total = tasksList.length;
       const count = completedTasks.size;
+      document.phonesockCount = count; // dummy reference
       document.getElementById("task-counter").textContent = `${count} / ${total}`;
 
       const percentage = total > 0 ? (count / total) * 100 : 0;
