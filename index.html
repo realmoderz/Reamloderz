@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>complete tasks to unlock link</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              yt: '#FF0000',
+              tg: '#229ED9',
+              ig: '#E1306C'
+            }
+          },
+          animation: {
+            'blob-1': 'floatOrb1 18s ease-in-out infinite alternate',
+            'blob-2': 'floatOrb2 22s ease-in-out infinite alternate',
+            'blob-3': 'floatOrb3 20s ease-in-out infinite alternate',
+            'shimmer': 'shimmer 2.5s infinite linear'
+          },
+          keyframes: {
+            floatOrb1: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '100%': { transform: 'translate(90px, 70px) scale(1.2)' }
+            },
+            floatOrb2: {
+              '0%': { transform: 'translate(0px, 0px) scale(1.1)' },
+              '100%': { transform: 'translate(-80px, -60px) scale(0.9)' }
+            },
+            floatOrb3: {
+              '0%': { transform: 'translate(0px, 0px) scale(0.95)' },
+              '100%': { transform: 'translate(70px, -80px) scale(1.25)' }
+            },
+            shimmer: {
+              '0%': { transform: 'translateX(-100%)' },
+              '100%': { transform: 'translateX(200%)' }
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Font: Plus Jakarta Sans for crisp modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Core Glassmorphism Styling */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-interactive {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .glass-interactive:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .glass-completed {
+      background: rgba(16, 185, 129, 0.08) !important;
+      border-color: rgba(52, 211, 153, 0.3) !important;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(52, 211, 153, 0.3) !important;
+    }
+  </style>
+</head>
+
+<body class="bg-[#07090e] text-slate-100 min-h-screen relative overflow-x-hidden flex flex-col justify-between items-center p-4 selection:bg-cyan-500 selection:text-black">
+
+  <!-- ================= AMBIENT GLASS REFLECTION LIGHT ORBS ================= -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-24 -left-20 w-[420px] h-[420px] rounded-full bg-gradient-to-tr from-indigo-600/40 via-purple-600/30 to-pink-600/20 blur-[110px] animate-blob-1"></div>
+    <div class="absolute top-1/2 -right-32 w-[460px] h-[460px] rounded-full bg-gradient-to-br from-cyan-500/35 via-blue-600/25 to-teal-500/20 blur-[130px] animate-blob-2"></div>
+    <div class="absolute -bottom-24 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-fuchsia-600/30 via-rose-600/20 to-amber-500/20 blur-[120px] animate-blob-3"></div>
+  </div>
+
+  <!-- ================= TOP AD BANNER SLOT ================= -->
+  <header class="relative z-10 w-full max-w-lg mx-auto mt-2 mb-4">
+    <div id="ad-slot-top" class="glass-pill rounded-2xl p-3 flex flex-col items-center justify-center min-h-[92px] text-center border-dashed border-white/20">
+      <span class="text-[9px] tracking-[0.2em] uppercase font-bold text-slate-400/80 mb-1 flex items-center gap-1.5">
+        <i class="fa-solid fa-rectangle-ad text-indigo-400"></i> Advertisement
+      </span>
+      <!-- Ad Code Placeholder -->
+      <div class="text-xs text-slate-400 font-medium tracking-wide">
+        Responsive Ad Banner Slot (728x90 / 320x50)
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN FROSTED GLASS CARD ================= -->
+  <main class="relative z-10 w-full max-w-md glass-panel rounded-3xl p-6 sm:p-8 my-auto relative">
+    
+    <!-- Specular Light Reflection Strip on Top Edge -->
+    <div class="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+
+    <!-- 1. LOADING STATE -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-14 space-y-4">
+      <div class="relative w-14 h-14">
+        <div class="absolute inset-0 rounded-full border-2 border-white/10"></div>
+        <div class="absolute inset-0 rounded-full border-2 border-t-cyan-400 border-r-indigo-500 animate-spin"></div>
+      </div>
+      <p class="text-xs font-semibold text-slate-300 tracking-wider uppercase">Retrieving destination...</p>
+    </div>
+
+    <!-- 2. ERROR STATE -->
+    <div id="error-state" class="hidden flex flex-col items-center text-center py-10 space-y-4">
+      <div class="w-16 h-16 rounded-2xl glass-pill bg-rose-500/10 border-rose-500/30 text-rose-400 flex items-center justify-center text-2xl shadow-lg shadow-rose-500/10">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 class="text-lg font-bold text-white tracking-tight">Access Error</h2>
+      <p id="error-message" class="text-xs text-slate-400 max-w-xs leading-relaxed">
+        The requested unlock key is missing or expired.
+      </p>
+      <button onclick="window.location.search='?id=demo'" class="px-4 py-2 mt-2 glass-pill hover:bg-white/10 text-xs font-semibold text-cyan-400 rounded-xl transition-all">
+        <i class="fa-solid fa-rotate-left mr-1"></i> Try Demo Preset
+      </button>
+    </div>
+
+    <!-- 3. UNLOCK INTERFACE -->
+    <div id="content-state" class="hidden space-y-6">
+      
+      <!-- Brand & Lock Status -->
+      <div class="text-center space-y-2">
+        <div class="relative inline-block mb-1">
+          <div id="lock-badge" class="w-14 h-14 rounded-2xl glass-pill text-cyan-400 flex items-center justify-center text-xl shadow-inner transition-all duration-500">
+            <i id="lock-icon" class="fa-solid fa-lock transition-transform duration-300"></i>
+          </div>
+        </div>
+
+        <h1 id="brand-title" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Channel Unlocks</h1>
+        <p class="text-xs text-slate-300/80 leading-relaxed font-normal">
+          Complete the tasks below to generate your direct destination link.
+        </p>
+      </div>
+
+      <!-- Frosted Counter Meter -->
+      <div class="glass-pill rounded-xl p-3 flex items-center justify-between text-xs font-medium">
+        <span class="text-slate-400 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          Verification Progress
+        </span>
+        <span id="task-counter" class="font-bold text-cyan-400 tracking-widest font-mono">0 / 0</span>
+      </div>
+
+      <!-- Dynamic Task Buttons -->
+      <div id="tasks-container" class="space-y-3">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+      <!-- Final Unlock CTA -->
+      <button
+        id="unlock-btn"
+        disabled
+        class="w-full relative overflow-hidden py-4 px-6 rounded-2xl font-extrabold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2.5 shadow-2xl disabled:opacity-40 disabled:cursor-not-allowed glass-pill text-slate-400 cursor-not-allowed"
+      >
+        <i class="fa-solid fa-lock text-xs"></i>
+        <span id="unlock-btn-text">Unlock Link</span>
+      </button>
+
+    </div>
+  </main>
+
+  <!-- ================= BOTTOM AD BANNER SLOT ================= -->
+  <footer class="relative z-10 w-full max-w-lg mx-auto mb-2 mt-4">
+    <div id="ad-slot-bottom" class="glass-pill rounded-2xl p-3 flex flex-col items-center justify-center min-h-[92px] text-center border-dashed border-white/20">
+      <span class="text-[9px] tracking-[0.2em] uppercase font-bold text-slate-400/80 mb-1 flex items-center gap-1.5">
+        <i class="fa-solid fa-rectangle-ad text-indigo-400"></i> Advertisement
+      </span>
+      <!-- Ad Code Placeholder -->
+      <div class="text-xs text-slate-400 font-medium tracking-wide">
+        Responsive Ad Banner Slot (728x90 / 300x250)
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= LOGIC & FIREBASE SCRIPT ================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // -------------------------------------------------------------
+    // FIREBASE CONFIGURATION (UPDATED WITH YOUR PROJECT DATA)
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_A-v2kRDBiry1iv1zC-Up3eMAvI1-NUs",
+      authDomain: "realmoderzs.firebaseapp.com",
+      databaseURL: "https://realmoderzs-default-rtdb.firebaseio.com",
+      projectId: "realmoderzs",
+      storageBucket: "realmoderzs.firebasestorage.app",
+      messagingSenderId: "879115715712",
+      appId: "1:879115715712:web:93b9584c6ecc7bbf951265"
+    };
+
+    // Initialize Firebase
+    let db = null;
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+    } catch (e) {
+      console.warn("Firebase credentials initialisation failed:", e);
+    }
+
+    // State Variables
+    let destinationUrl = "";
+    let tasksList = [];
+    const completedTasks = new Set();
+
+    // DOM References
+    const loadingState = document.getElementById("loading-state");
+    const errorState = document.getElementById("error-state");
+    const contentState = document.getElementById("content-state");
+    const errorMessage = document.getElementById("error-message");
+    const brandTitle = document.getElementById("brand-title");
+    const taskCounter = document.getElementById("task-counter");
+    const tasksContainer = document.getElementById("tasks-container");
+    const unlockBtn = document.getElementById("unlock-btn");
+    const unlockBtnText = document.getElementById("unlock-btn-text");
+    const lockBadge = document.getElementById("lock-badge");
+    const lockIcon = document.getElementById("lock-icon");
+
+    // Platform Presets (Frosted Glass Styling)
+    const platformPresets = {
+      youtube: {
+        icon: "fa-brands fa-youtube",
+        iconWrap: "bg-red-500/15 text-red-500 border border-red-500/30",
+        badge: "YouTube"
+      },
+      telegram: {
+        icon: "fa-brands fa-telegram",
+        iconWrap: "bg-sky-400/15 text-sky-400 border border-sky-400/30",
+        badge: "Telegram"
+      },
+      instagram: {
+        icon: "fa-brands fa-instagram",
+        iconWrap: "bg-pink-500/15 text-pink-400 border border-pink-500/30",
+        badge: "Instagram"
+      },
+      default: {
+        icon: "fa-solid fa-arrow-up-right-from-square",
+        iconWrap: "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30",
+        badge: "Follow Link"
+      }
+    };
+
+    // Load Data
+    async function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const linkId = urlParams.get("id");
+
+      // Interactive Fallback/Demo mode if ?id=demo or no link ID provided
+      if (!linkId || linkId === "demo" || !db) {
+        if (!linkId) {
+          loadMockDemo("Creator Showcase");
+          return;
+        } else if (linkId === "demo") {
+          loadMockDemo("Frosted Demo Studio");
+          return;
+        }
+      }
+
+      // Read from Firebase Realtime DB
+      try {
+        const linkRef = ref(db, `links/${linkId}`);
+        const snapshot = await get(linkRef);
+
+        if (!snapshot.exists()) {
+          showError("Link ID not found in database.");
+          return;
+        }
+
+        renderData(snapshot.val());
+      } catch (err) {
+        console.error("Firebase fetch error:", err);
+        showError("Database connection failed. Please check network/rules.");
+      }
+    }
+
+    function loadMockDemo(brand) {
+      setTimeout(() => {
+        renderData({
+          brandName: brand,
+          destinationLink: "https://google.com",
+          tasks: [
+            { platform: "youtube", title: "Subscribe to Official Channel", url: "https://youtube.com" },
+            { platform: "telegram", title: "Join Discussion Telegram", url: "https://t.me" },
+            { platform: "instagram", title: "Follow us on Instagram", url: "https://instagram.com" }
+          ]
+        });
+      }, 500);
+    }
+
+    function showError(msg) {
+      loadingState.classList.add("hidden");
+      contentState.classList.add("hidden");
+      errorState.classList.remove("hidden");
+      errorMessage.textContent = msg;
+    }
+
+    function renderData(data) {
+      if (!data || !data.destinationLink || !Array.isArray(data.tasks)) {
+        showError("Invalid link structure in database.");
+        return;
+      }
+
+      destinationUrl = data.destinationLink;
+      tasksList = data.tasks;
+      brandTitle.textContent = data.brandName || "Exclusive Link Unlock";
+
+      updateProgress();
+      renderTasks();
+
+      loadingState.classList.add("hidden");
+      errorState.classList.add("hidden");
+      contentState.classList.remove("hidden");
+    }
+
+    function renderTasks() {
+      tasksContainer.innerHTML = "";
+
+      tasksList.forEach((task, index) => {
+        const platform = (task.platform || "").toLowerCase();
+        const conf = platformPresets[platform] || platformPresets.default;
+        const isDone = completedTasks.has(index);
+
+        const btn = document.createElement("button");
+        btn.className = `w-full p-3.5 rounded-2xl glass-interactive flex items-center justify-between text-left group ${
+          isDone ? "glass-completed cursor-default" : "cursor-pointer"
+        }`;
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-3.5">
+            <span class="w-10 h-10 rounded-xl flex items-center justify-center text-lg ${conf.iconWrap} transition-transform group-hover:scale-105">
+              <i class="${conf.icon}"></i>
+            </span>
+            <div>
+              <p class="text-sm font-semibold tracking-tight ${isDone ? 'text-emerald-300 line-through' : 'text-white'}">
+                ${task.title || "Complete Task"}
+              </p>
+              <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400/80">
+                ${conf.badge}
+              </span>
+            </div>
+          </div>
+          <div id="status-slot-${index}" class="text-sm">
+            ${
+              isDone
+                ? '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>'
+                : '<i class="fa-solid fa-arrow-right text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></i>'
+            }
+          </div>
+        `;
+
+        if (!isDone) {
+          btn.onclick = () => onTaskClick(task, index);
+        }
+
+        tasksContainer.appendChild(btn);
+      });
+    }
+
+    function onTaskClick(task, index) {
+      if (completedTasks.has(index)) return;
+
+      if (task.url) {
+        window.open(task.url, "_blank", "noopener,noreferrer");
+      }
+
+      const slot = document.getElementById(`status-slot-${index}`);
+      if (slot) {
+        slot.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-cyan-400 text-sm"></i>';
+      }
+
+      setTimeout(() => {
+        completedTasks.add(index);
+        updateProgress();
+        renderTasks();
+        checkAllFinished();
+      }, 1600);
+    }
+
+    function updateProgress() {
+      taskCounter.textContent = `${completedTasks.size} / ${tasksList.length}`;
+    }
+
+    function checkAllFinished() {
+      if (completedTasks.size === tasksList.length && tasksList.length > 0) {
+        lockBadge.className = "w-14 h-14 rounded-2xl glass-pill bg-emerald-500/20 border-emerald-400/40 text-emerald-300 flex items-center justify-center text-xl shadow-[0_0_30px_rgba(52,211,153,0.3)] transition-all duration-500";
+        lockIcon.className = "fa-solid fa-lock-open scale-110";
+
+        unlockBtn.disabled = false;
+        unlockBtn.className = "w-full relative overflow-hidden py-4 px-6 rounded-2xl font-extrabold text-sm tracking-wide text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 hover:brightness-110 shadow-[0_0_35px_rgba(52,211,153,0.4)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer";
+        
+        unlockBtn.innerHTML = `
+          <div class="absolute inset-0 w-1/2 h-full bg-white/30 skew-x-12 animate-shimmer pointer-events-none"></div>
+          <span class="relative z-10 font-black tracking-wider uppercase text-xs">Unlock Destination Link</span>
+          <i class="fa-solid fa-arrow-right text-xs relative z-10"></i>
+        `;
+
+        unlockBtn.onclick = () => {
+          if (destinationUrl) {
+            window.location.href = destinationUrl;
+          }
+        };
+      }
+    }
+
+    // Launch
+    init();
+  </script>
+</body>
+</html>
