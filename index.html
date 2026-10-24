@@ -361,11 +361,10 @@
       evaluateUnlockStatus();
     }
 
-    // Jab user YouTube/Telegram se wapas aaye toh check karega
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && pendingTaskIndex !== null) {
         const timeSpent = Date.now() - pendingTime;
-        if (timeSpent >= 3000) { // 3 second baad automatic tick
+        if (timeSpent >= 3000) {
           markTaskComplete(pendingTaskIndex);
           pendingTaskIndex = null;
         }
@@ -375,7 +374,7 @@
     function updateProgressDisplay() {
       const total = tasksList.length;
       const count = completedTasks.size;
-      document.getElementById("task-counter").textContent = `${count} / `${total}`;
+      document.getElementById("task-counter").textContent = `${count} / ${total}`;
 
       const percentage = total > 0 ? (count / total) * 100 : 0;
       document.getElementById("progress-bar-fill").style.width = `${percentage}%`;
