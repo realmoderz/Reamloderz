@@ -202,8 +202,6 @@
 
     const completedTasks = new Set();
     const openedTasks = new Set();
-
-    // STRICT EXPIRY TIMER: 10 Minutes (in milliseconds)
     const EXPIRY_TIME = 10 * 60 * 1000; 
 
     async function init() {
@@ -240,13 +238,11 @@
         const savedTime = localStorage.getItem(`rm_time_${storageKey}`);
         const currentTime = Date.now();
 
-        // 10 मिनट से ज़्यादा होने पर पूरा प्रोग्रेस रीसेट कर दें
         if (!savedTime || (currentTime - parseInt(savedTime, 10)) > EXPIRY_TIME) {
           localStorage.removeItem(`rm_completed_${storageKey}`);
           localStorage.removeItem(`rm_opened_${storageKey}`);
           localStorage.setItem(`rm_time_${storageKey}`, currentTime.toString());
         } else {
-          // 10 मिनट के अंदर हैं, तो सेव किया हुआ स्टेट ही दिखाएं
           const savedCompleted = localStorage.getItem(`rm_completed_${storageKey}`);
           if (savedCompleted) {
             JSON.parse(savedCompleted).forEach(idx => completedTasks.add(idx));
@@ -257,9 +253,7 @@
             JSON.parse(savedOpened).forEach(idx => openedTasks.add(idx));
           }
         }
-      } catch (e) {
-        console.warn("Storage check exception", e);
-      }
+      } catch (e) {}
 
       document.getElementById("brand-title").textContent = data.brandName || "Realmoderz";
 
@@ -374,24 +368,6 @@
       setTimeout(() => {
         markTaskComplete(index);
       }, 400);
-    }
-
-    function markTaskComplete(index) {
-      completedTasks.add(index);
-      saveState();
-
-      const card = document.getElementById(`task-card-${index}`);
-      if (card) card.classList.add("task-card-completed");
-
-      const title = document.getElementById(`task-title-${index}`);
-      if (title) {
-        title.classList.add("text-emerald-300", "line-through");
-        title.classList.remove("text-slate-100");
-      }
-
-      updateTaskActionSlot(index);
-      updateProgressDisplay();
-      evaluateUnlockStatus();
     }
 
     document.addEventListener("visibilitychange", () => {
