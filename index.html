@@ -50,16 +50,18 @@
       border-color: rgba(52, 211, 153, 0.35) !important;
     }
 
+    /* Fully mobile responsive banner container */
     .ad-slot-box {
-      width: 320px;
-      height: 50px;
-      max-width: 100%;
+      width: 100%;
+      max-width: 320px;
+      min-height: 50px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       background: rgba(255, 255, 255, 0.02);
       border-radius: 8px;
+      margin: 0 auto;
     }
   </style>
 </head>
@@ -67,7 +69,7 @@
 <body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col justify-between items-center p-3 sm:p-4 selection:bg-cyan-500 selection:text-black">
 
   <!-- TOP AD BANNER -->
-  <div class="w-full flex justify-center my-2">
+  <div class="w-full flex justify-center my-2 px-2">
     <div class="ad-slot-box">
       <script>
         atOptions = {
@@ -146,7 +148,7 @@
   </main>
 
   <!-- BOTTOM AD BANNER -->
-  <div class="w-full flex justify-center my-2">
+  <div class="w-full flex justify-center my-2 px-2">
     <div class="ad-slot-box">
       <script>
         atOptions = {
@@ -164,7 +166,7 @@
   <!-- APPLICATION LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA_A-v2kRDBiry1iv1zC-Up3eMAvI1-NUs",
@@ -175,6 +177,45 @@
       messagingSenderId: "879115715712",
       appId: "1:879115715712:web:93b9584c6ecc7bbf951265"
     };
+
+    // SOUND FX SYSTEM
+    let audioCtx = null;
+    function playSound(type = 'click') {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.05);
+        } else if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'unlock') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.3);
+        }
+      } catch (e) {}
+    }
 
     const FALLBACK_DATA = {
       brandName: "Realmoderz Links",
@@ -202,7 +243,7 @@
 
     const completedTasks = new Set();
     const openedTasks = new Set();
-    const EXPIRY_TIME = 10 * 60 * 1000; 
+    const EXPIRY_TIME = 15 * 60 * 1000; 
 
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -218,13 +259,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const linkRef = ref(db, `links/${linkId}`);
-        const snapshot = await get(linkRef);
 
-        if (snapshot.exists()) {
-          loadData(snapshot.val());
-        } else {
+        // Realtime sync from Firebase Admin updates
+        onValue(linkRef, (snapshot) => {
+          if (snapshot.exists()) {
+            loadData(snapshot.val());
+          } else {
+            loadData(FALLBACK_DATA);
+          }
+        }, (error) => {
           loadData(FALLBACK_DATA);
-        }
+        });
+
       } catch (err) {
         loadData(FALLBACK_DATA);
       }
@@ -245,12 +291,16 @@
         } else {
           const savedCompleted = localStorage.getItem(`rm_completed_${storageKey}`);
           if (savedCompleted) {
-            JSON.parse(savedCompleted).forEach(idx => completedTasks.add(idx));
+            JSON.parse(savedCompleted).forEach(idx => {
+              if (idx < tasksList.length) completedTasks.add(idx);
+            });
           }
 
           const savedOpened = localStorage.getItem(`rm_opened_${storageKey}`);
           if (savedOpened) {
-            JSON.parse(savedOpened).forEach(idx => openedTasks.add(idx));
+            JSON.parse(savedOpened).forEach(idx => {
+              if (idx < tasksList.length) openedTasks.add(idx);
+            });
           }
         }
       } catch (e) {}
@@ -277,6 +327,11 @@
     function renderTasksContainer() {
       const container = document.getElementById("tasks-container");
       container.innerHTML = "";
+
+      if (tasksList.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 font-bold">No tasks required. Link is ready to unlock!</div>`;
+        return;
+      }
 
       tasksList.forEach((task, index) => {
         const platform = (task.platform || "").toLowerCase();
@@ -342,6 +397,7 @@
     }
 
     function handleOpenClick(index) {
+      playSound('click');
       const task = tasksList[index];
       openedTasks.add(index);
       pendingTaskIndex = index;
@@ -356,6 +412,7 @@
     }
 
     function handleVerifyClick(index) {
+      playSound('click');
       const slot = document.getElementById(`task-action-${index}`);
       if (!slot) return;
 
@@ -367,13 +424,32 @@
 
       setTimeout(() => {
         markTaskComplete(index);
-      }, 400);
+      }, 500);
+    }
+
+    function markTaskComplete(index) {
+      completedTasks.add(index);
+      saveState();
+      playSound('success');
+
+      const card = document.getElementById(`task-card-${index}`);
+      if (card) card.classList.add("task-card-completed");
+
+      const title = document.getElementById(`task-title-${index}`);
+      if (title) {
+        title.classList.add("text-emerald-300", "line-through");
+        title.classList.remove("text-slate-100");
+      }
+
+      updateTaskActionSlot(index);
+      updateProgressDisplay();
+      evaluateUnlockStatus();
     }
 
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && pendingTaskIndex !== null) {
         const timeSpent = Date.now() - pendingTime;
-        if (timeSpent >= 3000) {
+        if (timeSpent >= 2500) {
           markTaskComplete(pendingTaskIndex);
           pendingTaskIndex = null;
         }
@@ -385,12 +461,12 @@
       const count = completedTasks.size;
       document.getElementById("task-counter").textContent = `${count} / ${total}`;
 
-      const percentage = total > 0 ? (count / total) * 100 : 0;
+      const percentage = total > 0 ? (count / total) * 100 : 100;
       document.getElementById("progress-bar-fill").style.width = `${percentage}%`;
     }
 
     function evaluateUnlockStatus() {
-      const isFinished = tasksList.length > 0 && completedTasks.size === tasksList.length;
+      const isFinished = tasksList.length === 0 || completedTasks.size >= tasksList.length;
       const unlockBtn = document.getElementById("unlock-btn");
       const lockBadge = document.getElementById("lock-badge");
       const lockIcon = document.getElementById("lock-icon");
@@ -404,9 +480,12 @@
         lockIcon.className = "fa-solid fa-lock-open";
 
         unlockBtn.onclick = () => {
-          if (destinationUrl) {
-            window.location.href = destinationUrl;
-          }
+          playSound('unlock');
+          setTimeout(() => {
+            if (destinationUrl) {
+              window.location.href = destinationUrl;
+            }
+          }, 200);
         };
       }
     }
