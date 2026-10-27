@@ -50,7 +50,6 @@
       border-color: rgba(52, 211, 153, 0.35) !important;
     }
 
-    /* Mobile Responsive Ad Banner */
     .ad-slot-box {
       width: 100%;
       max-width: 320px;
@@ -131,6 +130,9 @@
         </div>
       </div>
 
+      <!-- Live Notice Container -->
+      <div id="task-warning-msg" class="hidden text-center text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 py-2 px-3 rounded-xl animate-fade-in"></div>
+
       <!-- TASKS CONTAINER -->
       <div id="tasks-container" class="space-y-2.5"></div>
 
@@ -195,6 +197,14 @@
           gain.connect(audioCtx.destination);
           osc.start();
           osc.stop(audioCtx.currentTime + 0.05);
+        } else if (type === 'warning') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.15);
         } else if (type === 'success') {
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(440, audioCtx.currentTime);
@@ -217,16 +227,6 @@
       } catch (e) {}
     }
 
-    const FALLBACK_DATA = {
-      brandName: "Realmoderz Links",
-      destinationLink: "https://google.com",
-      tasks: [
-        { platform: "youtube", title: "Subscribe to YouTube Channel", url: "https://youtube.com" },
-        { platform: "telegram", title: "Join Telegram Channel", url: "https://t.me" },
-        { platform: "instagram", title: "Follow us on Instagram", url: "https://instagram.com" }
-      ]
-    };
-
     const platformPresets = {
       youtube: { icon: "fa-brands fa-youtube", color: "text-red-500", bg: "bg-red-500/10", defaultTitle: "Subscribe on YouTube" },
       telegram: { icon: "fa-brands fa-telegram", color: "text-sky-400", bg: "bg-sky-400/10", defaultTitle: "Join Telegram Channel" },
@@ -240,10 +240,11 @@
     let storageKey = "demo";
     let pendingTaskIndex = null;
     let pendingTime = 0;
+    const MIN_PAGE_TIME = 12000; // Solution A: 12 seconds mandatory wait
 
     const completedTasks = new Set();
     const openedTasks = new Set();
-    const EXPIRY_TIME = 15 * 60 * 1000; 
+    const EXPIRY_TIME = 15 * 60 * 1000;
 
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -251,7 +252,7 @@
       storageKey = linkId || "demo";
 
       if (!linkId) {
-        loadData(FALLBACK_DATA);
+        showError("No Link ID specified in URL.");
         return;
       }
 
@@ -260,20 +261,34 @@
         const db = getDatabase(app);
         const linkRef = ref(db, `links/${linkId}`);
 
-        // Realtime sync from Firebase
         onValue(linkRef, (snapshot) => {
           if (snapshot.exists()) {
             loadData(snapshot.val());
           } else {
-            loadData(FALLBACK_DATA);
+            showError("This unlock link does not exist or has expired.");
           }
-        }, (error) => {
-          loadData(FALLBACK_DATA);
+        }, (err) => {
+          showError("Database connection failed.");
         });
 
       } catch (err) {
-        loadData(FALLBACK_DATA);
+        showError(err.message);
       }
+    }
+
+    function showError(msg) {
+      document.getElementById("loading-state").classList.add("hidden");
+      document.getElementById("content-state").classList.add("hidden");
+      const errBox = document.getElementById("error-state");
+      errBox.classList.remove("hidden");
+      document.getElementById("error-message").textContent = msg;
+    }
+
+    function showNotice(msg) {
+      const el = document.getElementById("task-warning-msg");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 5000);
     }
 
     function loadData(data) {
@@ -329,7 +344,7 @@
       container.innerHTML = "";
 
       if (tasksList.length === 0) {
-        container.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 font-bold">No tasks required. Link is ready to unlock!</div>`;
+        container.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 font-bold">No tasks required! You can directly unlock below.</div>`;
         return;
       }
 
@@ -411,20 +426,31 @@
       }
     }
 
+    // Solution B: Countdown Double-check Verification
     function handleVerifyClick(index) {
       playSound('click');
       const slot = document.getElementById(`task-action-${index}`);
       if (!slot) return;
 
+      let countdown = 7;
       slot.innerHTML = `
-        <div class="w-8 h-8 rounded-xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center text-xs">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-        </div>
+        <button disabled class="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-cyan-500/20 text-cyan-300 flex items-center gap-1.5 cursor-wait">
+          <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>
+          <span>Check (${countdown}s)</span>
+        </button>
       `;
 
-      setTimeout(() => {
-        markTaskComplete(index);
-      }, 500);
+      const timerId = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          const btn = slot.querySelector("button span");
+          if (btn) btn.textContent = `Check (${countdown}s)`;
+        } else {
+          clearInterval(timerId);
+          // Confirm completion
+          markTaskComplete(index);
+        }
+      }, 1000);
     }
 
     function markTaskComplete(index) {
@@ -446,10 +472,16 @@
       evaluateUnlockStatus();
     }
 
+    // Solution A: Tab Return Strict Timer Check (12 sec mandatory)
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && pendingTaskIndex !== null) {
         const timeSpent = Date.now() - pendingTime;
-        if (timeSpent >= 2500) {
+        if (timeSpent < MIN_PAGE_TIME) {
+          playSound('warning');
+          showNotice("⚠️ Action not detected! You must stay at least 12 seconds on the channel/page.");
+          pendingTaskIndex = null;
+        } else {
+          // Stayed long enough, trigger completion directly
           markTaskComplete(pendingTaskIndex);
           pendingTaskIndex = null;
         }
