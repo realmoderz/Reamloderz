@@ -82,7 +82,7 @@
     <!-- 1. LOADING STATE -->
     <div id="loading-state" class="flex flex-col items-center justify-center py-10 space-y-3">
       <div class="w-9 h-9 rounded-full border-2 border-white/10 border-t-amber-400 animate-spin"></div>
-      <p class="text-xs font-semibold text-slate-400 tracking-wider uppercase">Verifying Key Token...</p>
+      <p class="text-xs font-semibold text-slate-400 tracking-wider uppercase">Loading Key Token...</p>
     </div>
 
     <!-- 2. ERROR STATE -->
@@ -95,7 +95,7 @@
       <button onclick="window.location.reload()" class="mt-2 text-xs font-bold text-amber-400 hover:underline">Try Again</button>
     </div>
 
-    <!-- 3. ACTIVE KEY GATE / CONTENT -->
+    <!-- 3. MAIN CONTENT -->
     <div id="content-state" class="hidden space-y-4">
       
       <!-- Key Header -->
@@ -112,9 +112,9 @@
         </div>
       </div>
 
-      <!-- Banner Image (If Admin Uploaded) -->
-      <div id="key-banner-container" class="hidden w-full overflow-hidden rounded-2xl border border-white/10">
-        <img id="key-banner-img" src="" alt="Key Banner" class="w-full h-32 object-cover" />
+      <!-- PHOTO CONTAINER (AUTO-ADJUST RATIO WITHOUT CROPPING) -->
+      <div id="key-photo-container" class="hidden w-full flex items-center justify-center rounded-2xl border border-white/10 bg-black/40 p-2 overflow-hidden">
+        <img id="key-photo-img" src="" alt="Key Photo" class="max-h-56 max-w-full w-auto object-contain rounded-xl" />
       </div>
 
       <!-- STAGE 1: AD TIMER GATE -->
@@ -123,20 +123,24 @@
           <i class="fa-solid fa-hourglass-half animate-pulse"></i>
         </div>
         <div>
-          <h3 class="text-xs font-bold text-white">Sponsor Verification In Progress</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Please wait while the sponsor ads finalize your access key.</p>
+          <h3 class="text-xs font-bold text-white">Sponsor Verification</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Please wait for the sponsor verification countdown.</p>
         </div>
         <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
           <div id="gate-progress-fill" class="bg-amber-400 h-full rounded-full transition-all duration-1000 w-0"></div>
         </div>
         <div class="text-xs font-mono font-bold text-amber-400">
-          Unlocking in <span id="gate-timer-sec">15</span>s
+          Unlocking in <span id="gate-timer-sec">12</span>s
         </div>
       </div>
 
-      <!-- STAGE 2: KEY UNVEILED BOX (Revealed after Ad timer) -->
+      <!-- STAGE 2: SHORTENER TRAVEL NOTIFICATION -->
+      <div id="shortener-travel-notice" class="hidden text-center text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 py-2.5 px-3 rounded-xl">
+        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Opening shortener link in new tab. Complete it to reveal your key!
+      </div>
+
+      <!-- STAGE 3: KEY UNVEILED BOX -->
       <div id="key-unveiled-box" class="hidden space-y-3">
-        
         <div class="bg-black/50 border border-amber-500/30 rounded-2xl p-4 text-center space-y-2">
           <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Your Access Key</span>
           <div class="flex items-center justify-between bg-white/[0.04] border border-white/10 rounded-xl p-2.5">
@@ -152,15 +156,14 @@
 
         <!-- Optional Summary / Notes -->
         <div id="key-summary-box" class="hidden bg-white/[0.02] border border-white/5 rounded-2xl p-3.5 space-y-1 text-left">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Instructions & Notes:</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Instructions / Details:</span>
           <p id="key-summary-text" class="text-xs text-slate-300 whitespace-pre-line leading-relaxed"></p>
         </div>
-
       </div>
 
       <!-- ACTION BUTTON -->
       <button
-        id="gate-claim-btn"
+        id="gate-action-btn"
         disabled
         class="w-full py-3.5 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed opacity-50 select-none"
       >
@@ -231,32 +234,33 @@
       } catch (e) {}
     }
 
-    let keyCodeParam = "";
+    let keyIdParam = "";
     let keyData = null;
-    const AD_GATE_SECONDS = 15; // Mandatory Ad Gate duration
+    const AD_GATE_SECONDS = 12; 
     let remainingGateSec = AD_GATE_SECONDS;
     let gateTimerInterval = null;
+    let shortenerTravelTriggered = false;
 
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
-      keyCodeParam = (urlParams.get("key") || "").trim();
+      keyIdParam = (urlParams.get("keyId") || urlParams.get("key") || "").trim();
 
-      if (!keyCodeParam) {
-        showError("No Key Code provided in URL. Please get a valid key link.");
+      if (!keyIdParam) {
+        showError("No Key token provided in URL. Please use a valid key link.");
         return;
       }
 
       try {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const keyRef = ref(db, `keys/${keyCodeParam}`);
+        const keyRef = ref(db, `keys/${keyIdParam}`);
 
         onValue(keyRef, (snapshot) => {
           if (snapshot.exists()) {
             keyData = snapshot.val();
             renderKeyInterface(keyData);
           } else {
-            showError(`Key "${keyCodeParam}" not found or has been revoked by admin.`);
+            showError(`Key "${keyIdParam}" was not found or has been revoked.`);
           }
         }, (err) => {
           showError("Database connection failed: " + err.message);
@@ -281,9 +285,9 @@
       document.getElementById("content-state").classList.remove("hidden");
 
       document.getElementById("key-title").textContent = data.keyTitle || "Access Key";
-      document.getElementById("key-code-display").textContent = data.keyCode || keyCodeParam;
+      document.getElementById("key-code-display").textContent = data.keyCode || "N/A";
 
-      // Expiry check
+      // Expiry calculation
       const isExpired = Date.now() > data.expiresAt;
       const statusBadge = document.getElementById("key-status-badge");
       const expiryText = document.getElementById("key-expiry-text");
@@ -298,10 +302,10 @@
         expiryText.textContent = "Valid until " + new Date(data.expiresAt).toLocaleDateString();
       }
 
-      // Banner image
+      // Auto-Adjust Photo (shows entire photo properly)
       if (data.keyImage) {
-        document.getElementById("key-banner-img").src = data.keyImage;
-        document.getElementById("key-banner-container").classList.remove("hidden");
+        document.getElementById("key-photo-img").src = data.keyImage;
+        document.getElementById("key-photo-container").classList.remove("hidden");
       }
 
       // Summary
@@ -328,23 +332,42 @@
 
         if (remainingGateSec <= 0) {
           clearInterval(gateTimerInterval);
-          activateClaimButton();
+          setupActionButton();
         }
       }, 1000);
     }
 
-    function activateClaimButton() {
-      const claimBtn = document.getElementById("gate-claim-btn");
-      claimBtn.disabled = false;
-      claimBtn.className = "w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:opacity-95 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2";
-      claimBtn.innerHTML = `<span>Claim My Access Key</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+    function setupActionButton() {
+      const actionBtn = document.getElementById("gate-action-btn");
+      actionBtn.disabled = false;
+      actionBtn.className = "w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:opacity-95 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2";
 
-      claimBtn.onclick = () => {
-        playSound('unlock');
-        document.getElementById("ad-gate-box").classList.add("hidden");
-        document.getElementById("key-unveiled-box").classList.remove("hidden");
-        claimBtn.classList.add("hidden");
-      };
+      const hasShortener = Boolean(keyData && keyData.shortenerUrl);
+
+      if (hasShortener && !shortenerTravelTriggered) {
+        actionBtn.innerHTML = `<span>Get Key (Travel Link)</span> <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>`;
+        actionBtn.onclick = () => {
+          playSound('click');
+          shortenerTravelTriggered = true;
+          document.getElementById("shortener-travel-notice").classList.remove("hidden");
+          window.open(keyData.shortenerUrl, "_blank", "noopener,noreferrer");
+
+          // Convert button to final reveal
+          actionBtn.innerHTML = `<span>Reveal My Access Key</span> <i class="fa-solid fa-key text-xs"></i>`;
+          actionBtn.onclick = () => revealKeyBox();
+        };
+      } else {
+        actionBtn.innerHTML = `<span>Get My Access Key</span> <i class="fa-solid fa-key text-xs"></i>`;
+        actionBtn.onclick = () => revealKeyBox();
+      }
+    }
+
+    function revealKeyBox() {
+      playSound('unlock');
+      document.getElementById("ad-gate-box").classList.add("hidden");
+      document.getElementById("shortener-travel-notice").classList.add("hidden");
+      document.getElementById("key-unveiled-box").classList.remove("hidden");
+      document.getElementById("gate-action-btn").classList.add("hidden");
     }
 
     document.getElementById("copy-key-btn").addEventListener("click", () => {
